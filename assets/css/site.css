@@ -1,0 +1,97 @@
+/* Under Kappa – forside. Bygger på WordPress-designet 2023–2025, se wordpress-design-2025_private/README.md. */
+
+@font-face { font-family: Bitter; font-weight: 400; font-display: swap; src: url('../fonts/bitter-400.woff2') format('woff2'); }
+@font-face { font-family: Bitter; font-weight: 800; font-display: swap; src: url('../fonts/bitter-800.woff2') format('woff2'); }
+@font-face { font-family: Raleway; font-weight: 400; font-display: swap; src: url('../fonts/raleway-400.woff2') format('woff2'); }
+@font-face { font-family: Raleway; font-weight: 600; font-display: swap; src: url('../fonts/raleway-600.woff2') format('woff2'); }
+
+:root {
+  --primary: #D80032;
+  --secondary: #0F0A0A;
+  --header-footer: #000000;
+  --background: #FFFBFC;
+  --foreground: #1F2031;
+  --tertiary: #6C6C77;
+  --lightgrey: #EDEDED;
+  --content: 1200px;
+  --outer: 30px;
+  --radius: 20px;
+  --serif: Bitter, Georgia, serif;
+  --sans: Raleway, system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--tertiary);
+  font: 400 16px/1.75 var(--sans);
+}
+img { max-width: 100%; height: auto; display: block; }
+a { color: var(--primary); }
+h1, h2, h3 { font-family: var(--serif); font-weight: 400; line-height: 1.1; color: var(--foreground); margin: 0; }
+
+.wrap { max-width: calc(var(--content) + 2 * var(--outer)); margin: 0 auto; padding: 0 var(--outer); }
+
+/* Header */
+.site-header { background: var(--header-footer); }
+.site-header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding-top: 14px; padding-bottom: 14px; }
+.brand { display: flex; align-items: center; gap: 16px; color: #fff; text-decoration: none; }
+.brand img { width: 64px; height: 64px; }
+.brand span { font: 800 24px/1 var(--serif); letter-spacing: 2px; text-transform: uppercase; }
+
+.btn {
+  display: inline-block; background: var(--primary); color: #fff; text-decoration: none;
+  font: 600 16px/1.4 var(--sans); padding: 8px 25px; border-radius: 4px;
+  transition: background .15s, color .15s;
+}
+.btn:hover, .btn:focus-visible { background: #fff; color: var(--foreground); }
+
+/* Hero: svart bånd som går over i lys bakgrunn, bildet stikker ned i overgangen */
+.hero { background: var(--secondary); padding-top: 60px; }
+.photo-band { background: linear-gradient(180deg, var(--secondary) 50%, var(--background) 50%); }
+.hero-top { display: grid; grid-template-columns: 3fr 2fr; gap: 50px; align-items: center; }
+.hero iframe { width: 100%; height: 352px; border: 0; border-radius: 12px; display: block; }
+.hero h1 { color: #fff; font-size: clamp(34px, 4.2vw, 50px); }
+.hero-lede { color: #cfcfd6; margin: 18px 0 0; }
+
+.listen { list-style: none; margin: 0; padding: 40px 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 14px 34px; }
+.listen a { display: flex; align-items: center; gap: 10px; color: var(--primary); text-decoration: none; font-weight: 600; }
+.listen a:hover span { text-decoration: underline; }
+.listen img { width: 28px; height: 28px; }
+
+.hero-photo { border-radius: var(--radius); width: 100%; aspect-ratio: 1600 / 694; object-fit: cover; object-position: 50% 30%; }
+
+/* Seksjoner */
+.section { padding: 100px 0 0; }
+.eyebrow { color: var(--primary); text-transform: uppercase; font-size: 14px; letter-spacing: 1px; margin: 0 0 10px; }
+.section h2 { font-size: clamp(36px, 4vw, 48px); margin-bottom: 20px; }
+.section p { margin: 0 0 16px; max-width: 70ch; }
+
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+.split img { border-radius: 31px; width: 100%; }
+
+/* Footer */
+.site-footer { background: var(--header-footer); color: #b5b5be; margin-top: 120px; padding: 60px 0 30px; }
+.footer-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 30px; flex-wrap: wrap; }
+.footer-name { font: 400 24px/1.2 var(--serif); color: #b5b5be; margin: 0 0 8px; }
+.social { display: flex; gap: 18px; list-style: none; margin: 14px 0 0; padding: 0; }
+.social a { color: #fff; display: block; }
+.social a:hover { color: var(--primary); }
+.social svg { width: 22px; height: 22px; display: block; }
+.footer-bottom { border-top: 1px solid #2a2a2a; margin-top: 40px; padding-top: 20px; font-size: 14px; }
+
+@media (max-width: 860px) {
+  .hero-top, .split { grid-template-columns: 1fr; gap: 30px; }
+  .hero { padding-top: 40px; }
+  .hero-photo { aspect-ratio: 4 / 3; }
+  .section { padding-top: 70px; }
+}
+@media (max-width: 520px) {
+  :root { --outer: 16px; }
+  .brand img { width: 48px; height: 48px; }
+  .brand span { font-size: 18px; letter-spacing: 1.5px; }
+  .btn { padding: 8px 16px; }
+  .listen { justify-content: flex-start; gap: 12px 24px; }
+}
