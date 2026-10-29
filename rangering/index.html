@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rangering – Under Kappa</title>
+  <meta name="description" content="Alle superheltene i Under Kappa, rangert etter KAPPE-skalaen.">
+  <meta property="og:title" content="Rangering">
+  <meta property="og:description" content="Alle superheltene i Under Kappa, rangert etter KAPPE-skalaen.">
+  <link rel="icon" type="image/png" href="../assets/img/favicon.png">
+  <link rel="preload" href="../assets/fonts/bitter-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../assets/css/site.css">
+  <script data-goatcounter="https://underkappa.goatcounter.com/count"
+          async src="//gc.zgo.at/count.js"></script>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="../">
+        <img src="../assets/img/logo.png" alt="" width="64" height="64">
+        <span>Under Kappa</span>
+      </a>
+      <nav class="site-nav" aria-label="Hovedmeny">
+        <a href="../episoder/">Episoder</a>
+        <a href="../gjester/">Gjester</a>
+        <a href="../turnering/">Turnering</a>
+        <a href="../rangering/" aria-current="page">Rangering</a>
+      </nav>
+      <a class="btn btn-contact" href="mailto:post@underkappa.no">Kontakt</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <div class="wrap">
+        <p class="eyebrow">KAPPE-skalaen</p>
+        <h1>Rangering</h1>
+        <p class="page-lede">Hver superhelt vi har tatt for oss får poeng for hvor <strong>K</strong>ul, <strong>A</strong>typisk, <strong>P</strong>lausibel, <strong>P</strong>raktisk og <strong>E</strong>kstraordinær den er. Her er alle, rangert. Slå av kategorier for å se hvem som vinner på det du bryr deg om.</p>
+      </div>
+    </section>
+
+    <section class="section section-tight">
+      <div class="wrap">
+        <div id="category-buttons" class="cat-buttons" role="group" aria-label="Velg kategorier"></div>
+        <div id="loading" class="muted">Henter rangeringen …</div>
+        <p id="error" class="muted" hidden></p>
+        <table id="ranking-table" class="rank-table" hidden>
+          <thead>
+            <tr><th scope="col">#</th><th scope="col">Superhelt</th><th scope="col">Poeng</th><th scope="col">Totalt</th></tr>
+          </thead>
+          <tbody id="ranking-body"></tbody>
+        </table>
+        <p id="empty-msg" class="muted" hidden>Ingen superhelter med disse kategoriene.</p>
+      </div>
+    </section>
+
+    <script>
+      const CATEGORIES = [
+        { id: 'Kul',           color: '#D80032' },
+        { id: 'Atypisk',       color: '#a855f7' },
+        { id: 'Plausibel',     color: '#3b82f6' },
+        { id: 'Praktisk',      color: '#22c55e' },
+        { id: 'Ekstraordinær', color: '#f59e0b' }
+      ];
+      const active = Object.fromEntries(CATEGORIES.map(c => [c.id, true]));
+      let rows = [];
+
+      // Poengene ligger i et Google-regneark som Vidar og Even oppdaterer.
+      const SHEET_ID = '1khKOu-9zjDnH8E1H0vBQE_FHg009-71wmB51pHtaZJ8';
+      const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
+
+      function parseCSV(text) {
+        const lines = text.split('\n').filter(l => l.trim() !== '');
+        if (!lines.length) return [];
+        const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+        return lines.slice(1).map(line => {
+          const values = []; let cur = '', q = false;
+          for (const ch of line) {
+            if (ch === '"') q = !q;
+            else if (ch === ',' && !q) { values.push(cur.trim()); cur = ''; }
+            else cur += ch;
+          }
+          values.push(cur.trim());
+          return Object.fromEntries(headers.map((h, i) => [h, values[i]]));
+        });
+      }
+
+      function render() {
+        const data = rows.map(r => {
+          const scores = {}; let total = 0;
+          CATEGORIES.forEach(c => {
+            const v = parseFloat((r[c.id] || '0').replace(',', '.')) || 0;
+            scores[c.id] = v; if (active[c.id]) total += v;
+          });
+          return { name: r['Episode'], scores, total: Math.round(total * 100) / 100 };
+        }).sort((a, b) => b.total - a.total);
+        const max = data.reduce((m, d) => Math.max(m, d.total), 0) || 1;
+        const tbody = document.getElementById('ranking-body');
+        tbody.innerHTML = '';
+        const anyActive = CATEGORIES.some(c => active[c.id]);
+        document.getElementById('ranking-table').hidden = !anyActive || !data.length;
+        document.getElementById('empty-msg').hidden = anyActive && data.length;
+        data.forEach((d, i) => {
+          const tr = document.createElement('tr');
+          const bar = document.createElement('div'); bar.className = 'rank-bar';
+          CATEGORIES.forEach(c => {
+            if (!active[c.id]) return;
+            const s = document.createElement('span');
+            s.style.width = (d.scores[c.id] / max * 100) + '%';
+            s.style.background = c.color;
+            s.title = `${c.id}: ${d.scores[c.id]}`;
+            bar.appendChild(s);
+          });
+          tr.innerHTML = `<td class="rank-n">${i + 1}</td><td class="rank-name"></td><td class="rank-bar-cell"></td><td class="rank-total">${d.total}</td>`;
+          tr.querySelector('.rank-name').textContent = d.name;
+          tr.querySelector('.rank-bar-cell').appendChild(bar);
+          tbody.appendChild(tr);
+        });
+      }
+
+      const box = document.getElementById('category-buttons');
+      CATEGORIES.forEach(c => {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'cat-btn active'; b.textContent = c.id;
+        b.style.setProperty('--cat', c.color);
+        b.setAttribute('aria-pressed', 'true');
+        b.addEventListener('click', () => {
+          active[c.id] = !active[c.id];
+          b.classList.toggle('active', active[c.id]);
+          b.setAttribute('aria-pressed', String(active[c.id]));
+          render();
+        });
+        box.appendChild(b);
+      });
+
+      fetch(CSV_URL)
+        .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
+        .then(t => {
+          rows = parseCSV(t).filter(r => r['Episode'] && r['Episode'].trim());
+          document.getElementById('loading').hidden = true;
+          render();
+        })
+        .catch(err => {
+          console.error(err);
+          document.getElementById('loading').hidden = true;
+          const e = document.getElementById('error');
+          e.textContent = 'Klarte ikke å hente rangeringen. Prøv igjen senere.';
+          e.hidden = false;
+        });
+    </script>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-top">
+        <div>
+          <p class="footer-name">Under Kappa</p>
+          <p>Finn oss på sosiale medier.</p>
+          <ul class="social">
+            <li><a href="https://www.facebook.com/underkappa" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.5 22v-8h2.7l.4-3.2h-3.1V8.8c0-.9.3-1.5 1.6-1.5h1.7V4.4c-.3 0-1.3-.1-2.5-.1-2.4 0-4.1 1.5-4.1 4.2v2.3H7.5V14h2.7v8h3.3z"/></svg></a></li>
+            <li><a href="https://www.instagram.com/underkappa/" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a></li>
+            <li><a href="https://www.youtube.com/@UnderKappaNo" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 7.2a2.5 2.5 0 0 0-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4A2.5 2.5 0 0 0 2.4 7.2C2 8.8 2 12 2 12s0 3.2.4 4.8a2.5 2.5 0 0 0 1.8 1.8C5.8 19 12 19 12 19s6.2 0 7.8-.4a2.5 2.5 0 0 0 1.8-1.8c.4-1.6.4-4.8.4-4.8s0-3.2-.4-4.8zM10 15V9l5.2 3L10 15z"/></svg></a></li>
+            <li><a href="mailto:post@underkappa.no" aria-label="E-post"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></a></li>
+          </ul>
+        </div>
+        <nav class="footer-nav" aria-label="Innhold">
+          <p class="footer-head">Innhold</p>
+          <a href="../episoder/">Episoder</a>
+          <a href="../gjester/">Gjester</a>
+          <a href="../turnering/">Turnering</a>
+          <a href="../rangering/" aria-current="page">Rangering</a>
+          <a href="../personvern/">Personvern</a>
+        </nav>
+      </div>
+      <div class="footer-bottom">© 2026 Under Kappa</div>
+    </div>
+  </footer>
+
+</body>
+</html>
