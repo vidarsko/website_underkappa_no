@@ -43,8 +43,6 @@
     <section class="section section-tight">
       <div class="wrap">
         <div id="category-buttons" class="cat-buttons" role="group" aria-label="Velg kategorier"></div>
-        <div id="loading" class="muted">Henter rangeringen …</div>
-        <p id="error" class="muted" hidden></p>
         <table id="ranking-table" class="rank-table" hidden>
           <thead>
             <tr><th scope="col">#</th><th scope="col">Superhelt</th><th scope="col">Poeng</th><th scope="col">Totalt</th></tr>
@@ -66,34 +64,19 @@
       const active = Object.fromEntries(CATEGORIES.map(c => [c.id, true]));
       let rows = [];
 
-      // Poengene ligger i et Google-regneark som Vidar og Even oppdaterer.
-      const SHEET_ID = '1khKOu-9zjDnH8E1H0vBQE_FHg009-71wmB51pHtaZJ8';
-      const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
-
-      function parseCSV(text) {
-        const lines = text.split('\n').filter(l => l.trim() !== '');
-        if (!lines.length) return [];
-        const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-        return lines.slice(1).map(line => {
-          const values = []; let cur = '', q = false;
-          for (const ch of line) {
-            if (ch === '"') q = !q;
-            else if (ch === ',' && !q) { values.push(cur.trim()); cur = ''; }
-            else cur += ch;
-          }
-          values.push(cur.trim());
-          return Object.fromEntries(headers.map((h, i) => [h, values[i]]));
-        });
-      }
+      // Poengene kommer fra Data/Under Kappa - rangering.csv i vaulten, lagt inn av build_site.py.
+      const RANKING = [{"episode": "1", "superhelt": "Spider-man", "kul": 18, "atypisk": 17, "plausibel": 14, "praktisk": 8, "ekstraordinaer": 10}, {"episode": "2", "superhelt": "Ant-man", "kul": 6, "atypisk": 15, "plausibel": 14, "praktisk": 19, "ekstraordinaer": 17}, {"episode": "3", "superhelt": "Aquaman", "kul": 14, "atypisk": 9, "plausibel": 13, "praktisk": 3, "ekstraordinaer": 11}, {"episode": "4", "superhelt": "Supermann", "kul": 7, "atypisk": 5, "plausibel": 4, "praktisk": 20, "ekstraordinaer": 20}, {"episode": "5", "superhelt": "The Flash", "kul": 11, "atypisk": 6, "plausibel": 12, "praktisk": 14, "ekstraordinaer": 18}, {"episode": "6", "superhelt": "Catwoman", "kul": 18, "atypisk": 7, "plausibel": 18, "praktisk": 3, "ekstraordinaer": 1}, {"episode": "7", "superhelt": "Hulken", "kul": 16, "atypisk": 16, "plausibel": 10, "praktisk": 0, "ekstraordinaer": 17}, {"episode": "8", "superhelt": "Poison Ivy", "kul": 17, "atypisk": 19, "plausibel": 10, "praktisk": 4, "ekstraordinaer": 14}, {"episode": "9", "superhelt": "Captain America", "kul": 8, "atypisk": 5, "plausibel": 18, "praktisk": 16, "ekstraordinaer": 12}, {"episode": "10", "superhelt": "Blue Beetle", "kul": 14, "atypisk": 4, "plausibel": 13, "praktisk": 19, "ekstraordinaer": 15}, {"episode": "11", "superhelt": "Scorpion", "kul": 12, "atypisk": 11, "plausibel": 19, "praktisk": 3, "ekstraordinaer": 4}, {"episode": "12", "superhelt": "Magneto", "kul": 20, "atypisk": 17, "plausibel": 18, "praktisk": 18, "ekstraordinaer": 18}, {"episode": "13", "superhelt": "Hell Cow", "kul": 20, "atypisk": 17, "plausibel": 17, "praktisk": 4, "ekstraordinaer": 15}, {"episode": "14", "superhelt": "Loke", "kul": 17, "atypisk": 12, "plausibel": 9, "praktisk": 12, "ekstraordinaer": 15}, {"episode": "15", "superhelt": "The Thing", "kul": 8, "atypisk": 14, "plausibel": 14, "praktisk": 2, "ekstraordinaer": 8}, {"episode": "16", "superhelt": "Tor", "kul": 16, "atypisk": 13, "plausibel": 14, "praktisk": 16, "ekstraordinaer": 16}, {"episode": "17", "superhelt": "Captain Marvel", "kul": 4, "atypisk": 3, "plausibel": 4, "praktisk": 18, "ekstraordinaer": 19}, {"episode": "18", "superhelt": "Groot", "kul": 16, "atypisk": 19, "plausibel": 15, "praktisk": 4, "ekstraordinaer": 12}, {"episode": "19", "superhelt": "Black Bolt", "kul": 9, "atypisk": 16, "plausibel": 14, "praktisk": 3, "ekstraordinaer": 19}, {"episode": "20", "superhelt": "Julenissen", "kul": 13, "atypisk": 20, "plausibel": 16, "praktisk": 13, "ekstraordinaer": 17}, {"episode": "21", "superhelt": "Wonder woman", "kul": 18, "atypisk": 16, "plausibel": 15, "praktisk": 18, "ekstraordinaer": 17}, {"episode": "22", "superhelt": "Wolverine", "kul": 18, "atypisk": 20, "plausibel": 17, "praktisk": 13, "ekstraordinaer": 12}, {"episode": "23", "superhelt": "One Punch man", "kul": 15, "atypisk": 4, "plausibel": 3, "praktisk": 14, "ekstraordinaer": 19}, {"episode": "24", "superhelt": "Iron Man", "kul": 17, "atypisk": 16, "plausibel": 20, "praktisk": 13, "ekstraordinaer": 8}, {"episode": "25", "superhelt": "Green lantern", "kul": 16, "atypisk": 17, "plausibel": 7, "praktisk": 15, "ekstraordinaer": 20}, {"episode": "26", "superhelt": "Påskeharen", "kul": 14, "atypisk": 20, "plausibel": 5, "praktisk": 3, "ekstraordinaer": 12}, {"episode": "27", "superhelt": "Madame Web", "kul": 18, "atypisk": 15, "plausibel": 14, "praktisk": 12, "ekstraordinaer": 13}, {"episode": "28", "superhelt": "Professor X", "kul": 13, "atypisk": 11, "plausibel": 6, "praktisk": 12, "ekstraordinaer": 10}, {"episode": "29", "superhelt": "The Riddler", "kul": 12, "atypisk": 14, "plausibel": 19, "praktisk": 3, "ekstraordinaer": 8}, {"episode": "30", "superhelt": "Storm", "kul": 20, "atypisk": 10, "plausibel": 13, "praktisk": 16, "ekstraordinaer": 20}, {"episode": "31", "superhelt": "Cyclops", "kul": 8, "atypisk": 12, "plausibel": 16, "praktisk": 3, "ekstraordinaer": 14}, {"episode": "32", "superhelt": "Rogue", "kul": 17, "atypisk": 20, "plausibel": 10, "praktisk": 0, "ekstraordinaer": 8}, {"episode": "33", "superhelt": "Nightcrawler", "kul": 19, "atypisk": 15, "plausibel": 14, "praktisk": 16, "ekstraordinaer": 18}, {"episode": "34", "superhelt": "Starlight", "kul": 8, "atypisk": 18, "plausibel": 8, "praktisk": 7, "ekstraordinaer": 14}, {"episode": "36", "superhelt": "The Joker", "kul": 20, "atypisk": 19, "plausibel": 20, "praktisk": 4, "ekstraordinaer": 8}, {"episode": "37", "superhelt": "Ultron", "kul": 16, "atypisk": 17, "plausibel": 7, "praktisk": 15, "ekstraordinaer": 19}, {"episode": "38", "superhelt": "Venom", "kul": 19, "atypisk": 19, "plausibel": 14, "praktisk": 3, "ekstraordinaer": 14}, {"episode": "39", "superhelt": "Aquaman 2", "kul": 18, "atypisk": 15, "plausibel": 12, "praktisk": 9, "ekstraordinaer": 15}, {"episode": "40", "superhelt": "Dr strange", "kul": 13, "atypisk": 14, "plausibel": 7, "praktisk": 16, "ekstraordinaer": 20}, {"episode": "41", "superhelt": "Julenissen 2", "kul": 10, "atypisk": 12, "plausibel": 8, "praktisk": 2, "ekstraordinaer": 20}, {"episode": "44", "superhelt": "Obi-wan Kenobi", "kul": 17, "atypisk": 8, "plausibel": 12, "praktisk": 18, "ekstraordinaer": 15}, {"episode": "45", "superhelt": "Mystique", "kul": 20, "atypisk": 19, "plausibel": 18, "praktisk": 20, "ekstraordinaer": 16}, {"episode": "47", "superhelt": "Frankensteins monster", "kul": 16, "atypisk": 20, "plausibel": 12, "praktisk": 2, "ekstraordinaer": 11}, {"episode": "48", "superhelt": "Pikachu", "kul": 14, "atypisk": 17, "plausibel": 15, "praktisk": 4, "ekstraordinaer": 13}, {"episode": "49", "superhelt": "Teenage mutant ninja turtles", "kul": 14, "atypisk": 18, "plausibel": 14, "praktisk": 4, "ekstraordinaer": 13}, {"episode": "52", "superhelt": "Human torch", "kul": 11, "atypisk": 17, "plausibel": 14, "praktisk": 15, "ekstraordinaer": 19}, {"episode": "53", "superhelt": "Mr Fantastic", "kul": 11, "atypisk": 14, "plausibel": 13, "praktisk": 20, "ekstraordinaer": 11}, {"episode": "54", "superhelt": "Invisible girl", "kul": 12, "atypisk": 13, "plausibel": 4, "praktisk": 18, "ekstraordinaer": 20}, {"episode": "56", "superhelt": "Batman", "kul": 18, "atypisk": 17, "plausibel": 18, "praktisk": 17, "ekstraordinaer": 7}, {"episode": "58", "superhelt": "Doctor Octopus", "kul": 18, "atypisk": 18, "plausibel": 17, "praktisk": 3, "ekstraordinaer": 13}, {"episode": "59", "superhelt": "Deadpool", "kul": 20, "atypisk": 19, "plausibel": 12, "praktisk": 9, "ekstraordinaer": 15}, {"episode": "61", "superhelt": "Powerpuffjentene", "kul": 18, "atypisk": 14, "plausibel": 4, "praktisk": 9, "ekstraordinaer": 20}, {"episode": "63", "superhelt": "Scarlet witch", "kul": 15, "atypisk": 12, "plausibel": 9, "praktisk": 20, "ekstraordinaer": 20}, {"episode": "64", "superhelt": "Ghost", "kul": 14, "atypisk": 15, "plausibel": 12, "praktisk": 11, "ekstraordinaer": 16}, {"episode": "65", "superhelt": "Daredevil", "kul": 18, "atypisk": 20, "plausibel": 19, "praktisk": 20, "ekstraordinaer": 14}, {"episode": "68", "superhelt": "Julenissen 3", "kul": 17, "atypisk": 20, "plausibel": 8, "praktisk": 13, "ekstraordinaer": 20}, {"episode": "69", "superhelt": "Vision", "kul": 16, "atypisk": 18, "plausibel": 3, "praktisk": 19, "ekstraordinaer": 18}, {"episode": "70", "superhelt": "Dr Manhattan", "kul": 12, "atypisk": 19, "plausibel": 4, "praktisk": 6, "ekstraordinaer": 20}, {"episode": "71", "superhelt": "Rocket", "kul": 15, "atypisk": 17, "plausibel": 17, "praktisk": 2, "ekstraordinaer": 7}, {"episode": "72", "superhelt": "Kirby", "kul": 18, "atypisk": 18, "plausibel": 10, "praktisk": 10, "ekstraordinaer": 13}, {"episode": "73", "superhelt": "Ellie Williams", "kul": 18, "atypisk": 18, "plausibel": 15, "praktisk": 3, "ekstraordinaer": 8}, {"episode": "74", "superhelt": "Super Mario", "kul": 17, "atypisk": 17, "plausibel": 14, "praktisk": 10, "ekstraordinaer": 16}, {"episode": "75", "superhelt": "Påskeharen 2", "kul": 15, "atypisk": 14, "plausibel": 17, "praktisk": 5, "ekstraordinaer": 8}, {"episode": "76", "superhelt": "Hoppekrepsen", "kul": 17, "atypisk": 10, "plausibel": 20, "praktisk": 7, "ekstraordinaer": 11}, {"episode": "77", "superhelt": "Phone Ranger", "kul": 17, "atypisk": 20, "plausibel": 17, "praktisk": 6, "ekstraordinaer": 15}, {"episode": "78", "superhelt": "Dr. Doom", "kul": 18, "atypisk": 14, "plausibel": 8, "praktisk": 19, "ekstraordinaer": 20}, {"episode": "79", "superhelt": "Clayface", "kul": 13, "atypisk": 18, "plausibel": 7, "praktisk": 15, "ekstraordinaer": 8}, {"episode": "81", "superhelt": "Silver Surfer", "kul": 18, "atypisk": 18, "plausibel": 13, "praktisk": 8, "ekstraordinaer": 17}, {"episode": "85", "superhelt": "Yoda", "kul": 20, "atypisk": 18, "plausibel": 17, "praktisk": 20, "ekstraordinaer": 15}];
+      const KEY = { 'Kul': 'kul', 'Atypisk': 'atypisk', 'Plausibel': 'plausibel', 'Praktisk': 'praktisk', 'Ekstraordinær': 'ekstraordinaer' };
+      rows = RANKING;
 
       function render() {
         const data = rows.map(r => {
           const scores = {}; let total = 0;
           CATEGORIES.forEach(c => {
-            const v = parseFloat((r[c.id] || '0').replace(',', '.')) || 0;
+            const v = r[KEY[c.id]] || 0;
             scores[c.id] = v; if (active[c.id]) total += v;
           });
-          return { name: r['Episode'], scores, total: Math.round(total * 100) / 100 };
+          return { name: `${r.superhelt} (#${r.episode})`, scores, total };
         }).sort((a, b) => b.total - a.total);
         const max = data.reduce((m, d) => Math.max(m, d.total), 0) || 1;
         const tbody = document.getElementById('ranking-body');
@@ -134,20 +117,7 @@
         box.appendChild(b);
       });
 
-      fetch(CSV_URL)
-        .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
-        .then(t => {
-          rows = parseCSV(t).filter(r => r['Episode'] && r['Episode'].trim());
-          document.getElementById('loading').hidden = true;
-          render();
-        })
-        .catch(err => {
-          console.error(err);
-          document.getElementById('loading').hidden = true;
-          const e = document.getElementById('error');
-          e.textContent = 'Klarte ikke å hente rangeringen. Prøv igjen senere.';
-          e.hidden = false;
-        });
+      render();
     </script>
 
   </main>
