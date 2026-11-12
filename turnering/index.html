@@ -1614,7 +1614,7 @@
       emoji.textContent = (type === 'battle') ? NODE_CONFIG.battleEmoji : NODE_CONFIG.trophyEmoji;
       wrap.appendChild(emoji);
 
-      const active = data && data.scriptSrc;
+      const active = data && (data.scriptSrc || data.episode);
       if (active) {
         const podWrap = mk('div', { class: 'podcast-wrapper' });
         podWrap.style.width = '100%';
