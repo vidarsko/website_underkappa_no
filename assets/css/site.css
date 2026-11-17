@@ -102,6 +102,10 @@ h1, h2, h3 { font-family: var(--serif); font-weight: 400; line-height: 1.1; colo
 .h-small { font-size: 26px; margin-bottom: 20px; }
 .muted { color: var(--tertiary); }
 .prose p { max-width: 70ch; }
+.prose .ep-q { font-size: 24px; margin: 36px 0 8px; max-width: 70ch; }
+.ep-hero iframe { display: block; width: 100%; max-width: 860px; height: 352px; border: 0; border-radius: 12px; margin-top: 32px; }
+.ep-time { display: inline-block; cursor: pointer; border: 0; font-family: inherit; line-height: 1.6; margin-right: 8px; padding: 1px 8px; border-radius: 999px; background: var(--primary); color: #fff; font-size: 13px; font-weight: 700; text-decoration: none; font-variant-numeric: tabular-nums; }
+.ep-time:hover { filter: brightness(1.1); }
 
 /* Episodeliste */
 .ep-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--lightgrey); }
@@ -138,7 +142,7 @@ h1, h2, h3 { font-family: var(--serif); font-weight: 400; line-height: 1.1; colo
 
 /* Episodeside */
 .ep-hero { padding-bottom: 50px; }
-.ep-player { display: block; width: 100%; max-width: 860px; height: 232px; border: 0; border-radius: 12px; margin-top: 32px; }
+.ep-player { display: block; width: 100%; max-width: 860px; height: 352px; border: 0; border-radius: 12px; margin-top: 32px; }
 .cast-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 30px 40px; }
 .cast { display: flex; flex-direction: column; align-items: center; gap: 6px; text-decoration: none; color: inherit; width: 130px; text-align: center; }
 .cast-name { font: 400 18px/1.25 var(--serif); color: var(--foreground); }
